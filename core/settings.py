@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from decouple import config
 
@@ -21,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-6cb)mwm!n*2*)8!b4+##+ihqay*$e6*c*u3g(hj1!%4qfia+)e'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-6cb)mwm!n*2*)8!b4+##+ihqay*$e6*c*u3g(hj1!%4qfia+)e')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -41,14 +42,13 @@ INSTALLED_APPS = [
     'corsheaders',
     'portfolio',  # Notre application principale
     'rest_framework',  # Django REST Framework
-
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -79,8 +79,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuration MySQL
-# Configuration MySQL officielle du projet
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -88,9 +86,10 @@ DATABASES = {
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT')
+        'PORT': config('DB_PORT'),
     }
 }
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -125,6 +124,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# Media files (uploads utilisateurs)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -132,29 +144,14 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Ajoute cette ligne tout à la fin de ton fichier settings.py :
+# CORS
+# En développement on autorise tout ; à restreindre en prod si besoin
+CORS_ALLOW_ALL_ORIGINS = True
 # CORS_ALLOWED_ORIGINS = [
 #     "http://localhost:5173",
 #     "http://127.0.0.1:5173",
-#     "http://10.9.164.64:5173",  
 # ]
 
-# ✅ Autorise tout en développement
-CORS_ALLOW_ALL_ORIGINS = True
-
-import os
-
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-
-
-
-
-
-
-
-# settings.py
 
 # Configuration du serveur de messagerie SMTP (Gmail)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -162,27 +159,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-# L'adresse email qui va expédier les messages
-EMAIL_HOST_USER = 'ousmaneg104@gmail.com'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='ousmaneg104@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
-# ⚠️ LE MOT DE PASSE D'APPLICATION DE 16 CARACTÈRES (SANS ESPACES)
-EMAIL_HOST_PASSWORD = 'nkzl ojry jzxm hpad' 
-
-# Nom de l'expéditeur qui s'affichera dans ta boîte aux lettres
 DEFAULT_FROM_EMAIL = f"Portfolio Contact <{EMAIL_HOST_USER}>"
-
-# 🎯 L'adresse cible qui REÇOIT les formulaires
-ADMIN_EMAIL = 'ousmaneg104@gmail.com'
-
-
-
-
-
-# 👇 AJOUTE CES DEUX LIGNES ICI :
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media' / 'staticfiles'
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+ADMIN_EMAIL = EMAIL_HOST_USER
