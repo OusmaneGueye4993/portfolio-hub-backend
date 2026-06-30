@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',  
     'django.contrib.staticfiles',
+     'cloudinary',        
     'corsheaders',
     'portfolio',  # Notre application principale
     'rest_framework',  # Django REST Framework
@@ -161,3 +163,15 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 
 DEFAULT_FROM_EMAIL = f"Portfolio Contact <{EMAIL_HOST_USER}>"
 ADMIN_EMAIL = EMAIL_HOST_USER
+
+
+
+
+
+# Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
