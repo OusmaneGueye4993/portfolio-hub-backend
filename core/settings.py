@@ -146,12 +146,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS
 # En développement on autorise tout ; à restreindre en prod si besoin
-CORS_ALLOW_ALL_ORIGINS = True
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",
-#     "http://127.0.0.1:5173",
-# ]
-
+CORS_ALLOWED_ORIGINS = [
+    "https://ousmanegueye.vercel.app",
+]
 
 # Configuration du serveur de messagerie SMTP (Gmail)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
