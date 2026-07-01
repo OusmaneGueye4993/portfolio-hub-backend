@@ -155,7 +155,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='ousmaneg104@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='mtfqcixpabtnqjvi')
 
 DEFAULT_FROM_EMAIL = f"Portfolio Contact <{EMAIL_HOST_USER}>"
 ADMIN_EMAIL = EMAIL_HOST_USER
