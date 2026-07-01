@@ -1,8 +1,10 @@
 import cloudinary
 import cloudinary.uploader
+import cloudinary.CloudinaryImage
 from django.core.files.storage import Storage
 from django.conf import settings
 import os
+
 
 class CloudinaryStorage(Storage):
     def __init__(self):
@@ -13,10 +15,27 @@ class CloudinaryStorage(Storage):
         )
 
     def _save(self, name, content):
-        result = cloudinary.uploader.upload(content, public_id=os.path.splitext(name)[0])
-        return result['public_id']
+        ext = os.path.splitext(name)[1].lower()
+        if ext in ['.pdf', '.doc', '.docx', '.zip']:
+            result = cloudinary.uploader.upload(
+                content,
+                public_id=os.path.splitext(name)[0],
+                resource_type='raw'
+            )
+            return result['public_id'] + ext
+        else:
+            result = cloudinary.uploader.upload(
+                content,
+                public_id=os.path.splitext(name)[0],
+                resource_type='image'
+            )
+            return result['public_id']
 
     def url(self, name):
+        ext = os.path.splitext(name)[1].lower()
+        if ext in ['.pdf', '.doc', '.docx', '.zip']:
+            cloud_name = settings.CLOUDINARY_STORAGE['CLOUD_NAME']
+            return f"https://res.cloudinary.com/{cloud_name}/raw/upload/{name}"
         return cloudinary.CloudinaryImage(name).build_url()
 
     def exists(self, name):
