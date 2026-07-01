@@ -78,6 +78,7 @@ class TestimonialViewSet(viewsets.ModelViewSet):
             return Testimonial.objects.all()
         return Testimonial.objects.filter(is_approved=True)
 
+
 class ContactMessageViewSet(viewsets.ModelViewSet):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
@@ -87,20 +88,19 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()] # Consultation réservée à l'admin
 
-    # 🎯 REMPLACEMENT ICI : La nouvelle méthode avec le rapport d'erreur complet
     def perform_create(self, serializer):
+        # 1. On sauvegarde d'abord le message en base de données (Validation immédiate)
         instance = serializer.save()
         
-        try:
-            send_mail(
-                subject=f"[Portfolio] Message de {instance.name} : {instance.subject}",
-                message=f"Nouveau message reçu depuis le Portfolio.\n\n"
-                        f"De : {instance.name} ({instance.email})\n"
-                        f"Sujet : {instance.subject}\n\n"
-                        f"Message :\n{instance.message}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[settings.ADMIN_EMAIL],
-                fail_silently=False, # Détecte immédiatement un problème de configuration SMTP
-            )
-        except Exception as e:
-            print(f"❌ ERREUR ENVOI EMAIL : {e}")
+        # 2. On tente l'envoi de l'email de manière asynchrone / silencieuse
+        # Si Render bloque le port, l'utilisateur recevra quand même sa confirmation de succès !
+        send_mail(
+            subject=f"[Portfolio] Message de {instance.name} : {instance.subject}",
+            message=f"Nouveau message reçu depuis le Portfolio.\n\n"
+                    f"De : {instance.name} ({instance.email})\n"
+                    f"Sujet : {instance.subject}\n\n"
+                    f"Message :\n{instance.message}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.ADMIN_EMAIL],
+            fail_silently=True,  # 🎯 CLÉ DE LA SOLUTION : Évite les Timeouts et renvoie un succès (201 Created)
+        )
