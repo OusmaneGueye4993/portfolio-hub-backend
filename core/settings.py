@@ -148,7 +148,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # Configuration du serveur de messagerie SMTP (Gmail)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Modifiez cette ligne :
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
