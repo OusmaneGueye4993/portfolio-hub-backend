@@ -32,14 +32,14 @@ class CloudinaryStorage(Storage):
                 resource_type='image'
             )
             return result['public_id']
-
     def url(self, name):
         ext = os.path.splitext(name)[1].lower()
         if ext in ['.pdf', '.doc', '.docx', '.zip']:
-            # Utilisation de l'outil natif pour générer proprement l'URL 'raw'
-            url, _ = cloudinary_url(name, resource_type="raw")
+            # On force explicitement 'version=None' pour éviter le bug du /v1/ sur les fichiers bruts
+            url, _ = cloudinary_url(name, resource_type="raw", version=None)
             return url
         return CloudinaryImage(name).build_url()
+
 
     def exists(self, name):
         return False
