@@ -15,20 +15,26 @@ class CloudinaryStorage(Storage):
         )
 
     def _save(self, name, content):
-        ext = os.path.splitext(name)[1].lower()
+        # On extrait juste le nom du fichier sans les préfixes de dossiers éventuels (ex: 'cv/mon_cv.pdf' -> 'mon_cv.pdf')
+        filename = os.path.basename(name)
+        base_name, ext = os.path.splitext(filename)
+        ext = ext.lower()
+
         if ext in ['.pdf', '.doc', '.docx', '.zip']:
-            # Changement : resource_type='image' pour contourner les restrictions strictes du mode raw
+            # On force le type 'upload' pour garantir l'accès public sans restriction de signature
             result = cloudinary.uploader.upload(
                 content,
-                public_id=os.path.splitext(name)[0],
-                resource_type='image'
+                public_id=base_name,
+                resource_type='image',
+                type='upload'
             )
             return result['secure_url']
         else:
             result = cloudinary.uploader.upload(
                 content,
-                public_id=os.path.splitext(name)[0],
-                resource_type='image'
+                public_id=base_name,
+                resource_type='image',
+                type='upload'
             )
             return result['secure_url']
 
@@ -45,5 +51,5 @@ class CloudinaryStorage(Storage):
             name = name.split('/upload/')[-1]
             if name.split('/')[0].startswith('v') and name.split('/')[0][1:].isdigit():
                 name = '/'.join(name.split('/')[1:])
-        name = os.path.splitext(name)[0]
+        name = os.path.splitext(os.path.basename(name))[0]
         cloudinary.uploader.destroy(name, resource_type='image')
