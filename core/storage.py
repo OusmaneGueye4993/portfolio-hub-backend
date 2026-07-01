@@ -1,9 +1,9 @@
+import os
 import cloudinary
 import cloudinary.uploader
-import cloudinary.CloudinaryImage
+from cloudinary import CloudinaryImage
 from django.core.files.storage import Storage
 from django.conf import settings
-import os
 
 
 class CloudinaryStorage(Storage):
@@ -36,7 +36,7 @@ class CloudinaryStorage(Storage):
         if ext in ['.pdf', '.doc', '.docx', '.zip']:
             cloud_name = settings.CLOUDINARY_STORAGE['CLOUD_NAME']
             return f"https://res.cloudinary.com/{cloud_name}/raw/upload/{name}"
-        return cloudinary.CloudinaryImage(name).build_url()
+        return CloudinaryImage(name).build_url()
 
     def exists(self, name):
         return False
