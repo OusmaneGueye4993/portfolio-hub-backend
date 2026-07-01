@@ -79,6 +79,34 @@ class TestimonialViewSet(viewsets.ModelViewSet):
         return Testimonial.objects.filter(is_approved=True)
 
 
+# class ContactMessageViewSet(viewsets.ModelViewSet):
+#     queryset = ContactMessage.objects.all()
+#     serializer_class = ContactMessageSerializer
+
+#     def get_permissions(self):
+#         if self.action == 'create': # Soumission publique du formulaire
+#             return [permissions.AllowAny()]
+#         return [permissions.IsAdminUser()] # Consultation réservée à l'admin
+
+#     def perform_create(self, serializer):
+#         # 1. On sauvegarde d'abord le message en base de données (Validation immédiate)
+#         instance = serializer.save()
+        
+#         # 2. On tente l'envoi de l'email de manière asynchrone / silencieuse
+#         # Si Render bloque le port, l'utilisateur recevra quand même sa confirmation de succès !
+#         send_mail(
+#             subject=f"[Portfolio] Message de {instance.name} : {instance.subject}",
+#             message=f"Nouveau message reçu depuis le Portfolio.\n\n"
+#                     f"De : {instance.name} ({instance.email})\n"
+#                     f"Sujet : {instance.subject}\n\n"
+#                     f"Message :\n{instance.message}",
+#             from_email=settings.DEFAULT_FROM_EMAIL,
+#             recipient_list=[settings.ADMIN_EMAIL],
+#             fail_silently=True,  # 🎯 CLÉ DE LA SOLUTION : Évite les Timeouts et renvoie un succès (201 Created)
+#         )
+
+
+
 class ContactMessageViewSet(viewsets.ModelViewSet):
     queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
@@ -89,18 +117,6 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
         return [permissions.IsAdminUser()] # Consultation réservée à l'admin
 
     def perform_create(self, serializer):
-        # 1. On sauvegarde d'abord le message en base de données (Validation immédiate)
-        instance = serializer.save()
-        
-        # 2. On tente l'envoi de l'email de manière asynchrone / silencieuse
-        # Si Render bloque le port, l'utilisateur recevra quand même sa confirmation de succès !
-        send_mail(
-            subject=f"[Portfolio] Message de {instance.name} : {instance.subject}",
-            message=f"Nouveau message reçu depuis le Portfolio.\n\n"
-                    f"De : {instance.name} ({instance.email})\n"
-                    f"Sujet : {instance.subject}\n\n"
-                    f"Message :\n{instance.message}",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.ADMIN_EMAIL],
-            fail_silently=True,  # 🎯 CLÉ DE LA SOLUTION : Évite les Timeouts et renvoie un succès (201 Created)
-        )
+        # 🎯 LA CORRECTION ICI : On enregistre uniquement en base de données.
+        # Cela prend moins de 100 millisecondes et renvoie un succès instantané à React !
+        serializer.save()
