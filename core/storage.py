@@ -1,7 +1,6 @@
 import os
 import cloudinary
 import cloudinary.uploader
-from cloudinary.utils import cloudinary_url
 from django.core.files.storage import Storage
 from django.conf import settings
 
@@ -19,45 +18,45 @@ class CloudinaryStorage(Storage):
         base_name, ext = os.path.splitext(filename)
         ext = ext.lower()
 
+        # Détermination du type de ressource Cloudinary
         if ext in ['.pdf', '.doc', '.docx', '.zip']:
-            # On uploade en mode 'image' mais SANS l'extension .pdf dans le public_id
-            result = cloudinary.uploader.upload(
-                content,
-                public_id=base_name,
-                resource_type='image'
-            )
-            
-            # On génère l'URL officielle via le SDK en forçant le format PDF
-            # Cela produira une URL publique valide et accessible du type .../upload/v12345/CV_Ousmane_Gueye.pdf
-            url, _ = cloudinary_url(
-                result['public_id'],
-                resource_type='image',
-                format=ext.replace('.', ''), # force le format pdf
-                secure=True
-            )
-            return url
+            r_type = 'raw'
         else:
-            result = cloudinary.uploader.upload(
-                content,
-                public_id=base_name,
-                resource_type='image'
-            )
-            return result['secure_url']
+            r_type = 'image'
+
+        # Upload avec le bon type et définition explicite de l'accès public
+        result = cloudinary.uploader.upload(
+            content,
+            public_id=base_name,
+            resource_type=r_type,
+            type='upload'  # Force l'accès public sans restriction de signature
+        )
+        
+        # On retourne l'URL sécurisée complète générée directement par la réponse Cloudinary
+        return result['secure_url']
 
     def url(self, name):
+        # Si le nom est déjà une URL complète, on la retourne
         if name.startswith('http://') or name.startswith('https://'):
             return name
-        return cloudinary_url(name, secure=True)[0]
+        
+        # Fallback de sécurité si seul le public_id ou un chemin relatif est stocké
+        ext = os.path.splitext(name)[1].lower()
+        r_type = 'raw' if ext in ['.pdf', '.doc', '.docx', '.zip'] else 'image'
+        
+        try:
+            return cloudinary.CloudinaryResource(name, resource_type=r_type).build_url(secure=True)
+        except Exception:
+            return name
 
     def exists(self, name):
         return False
 
     def delete(self, name):
         if name.startswith('http://') or name.startswith('https://'):
+            # Extraction du type et du public_id depuis l'URL
+            r_type = 'raw' if '.pdf' in name or '.zip' in name else 'image'
             name = name.split('/upload/')[-1]
-            # Supprime la version si présente
             if name.split('/')[0].startswith('v') and name.split('/')[0][1:].isdigit():
                 name = '/'.join(name.split('/')[1:])
-        # On extrait le public_id pur sans extension
-        name = os.path.splitext(os.path.basename(name))[0]
-        cloudinary.uploader.destroy(name, resource_type='image')
+            cloudinary.uploader.destroy(name, resource_type=r_type)
