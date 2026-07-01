@@ -22,7 +22,7 @@ class CloudinaryStorage(Storage):
                 public_id=os.path.splitext(name)[0],
                 resource_type='raw'
             )
-            return result['public_id'] + ext
+            return result['public_id']
         else:
             result = cloudinary.uploader.upload(
                 content,
